@@ -44,6 +44,9 @@
 #include <modules/opengl/volume/volumeutils.h>
 #include <modules/opengl/texture/textureutils.h>
 
+#include <inviwo/core/properties/customraycastingproperty.h>
+
+
 namespace inviwo {
 
 class Camera;
@@ -93,6 +96,16 @@ IVW_MODULE_OPENGL_API void setShaderUniforms(Shader& shader, const RaycastingPro
 
 IVW_MODULE_OPENGL_API void setShaderDefines(
     Shader& shader, const TemplateOptionProperty<RaycastingProperty::GradientComputation>& property,
+    bool voxelClassification = false);
+
+//CustomRaycastingProperty
+IVW_MODULE_OPENGL_API void addShaderDefines(Shader& shader, const CustomRaycastingProperty& property);
+IVW_MODULE_OPENGL_API void setShaderUniforms(Shader& shader, const CustomRaycastingProperty& property);
+IVW_MODULE_OPENGL_API void setShaderUniforms(Shader& shader, const CustomRaycastingProperty& property,
+                                             std::string_view name);
+
+IVW_MODULE_OPENGL_API void setShaderDefines(
+    Shader& shader, const TemplateOptionProperty<CustomRaycastingProperty::GradientComputation>& property,
     bool voxelClassification = false);
 
 // SpatialEntity

@@ -56,7 +56,7 @@ const ProcessorInfo CustomVolumeRayCaster::getProcessorInfo() const { return pro
 
 CustomVolumeRayCaster::CustomVolumeRayCaster()
     : PoolProcessor()
-    , shader_("raycasting.frag", Shader::Build::No)
+    , shader_("customraycasting.frag", Shader::Build::No)
     , volumePort_("volume")
     , entryPort_("entry")
     , exitPort_("exit")
@@ -66,7 +66,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     , raycasting_("raycaster", "Raycasting")
     , isotfComposite_Cell_("isotfComposite_Cell", "TF & IsoValues - Cell", &volumePort_,
                             InvalidationLevel::InvalidResources)
-    , isotfComposite_trial_("isotfComposite_trial", "TF & Isovalues - trial", &volumePort_,
+    , transferFunc_("transferFunction", "Transfer Function - 1", &volumePort_, 
                             InvalidationLevel::InvalidResources)
     , camera_("camera", "Camera", util::boundingBox(volumePort_))
     , lighting_("lighting", "Lighting", &camera_)
@@ -108,10 +108,10 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     raycasting_.gradientComputation_.onChange([this]() {
         if (channel_.size() == 4) {
             if (raycasting_.gradientComputation_.get() ==
-                RaycastingProperty::GradientComputation::PrecomputedXYZ) {
+                CustomRaycastingProperty::GradientComputation::PrecomputedXYZ) {
                 channel_.set(3);
             } else if (raycasting_.gradientComputation_.get() ==
-                       RaycastingProperty::GradientComputation::PrecomputedYZW) {
+                       CustomRaycastingProperty::GradientComputation::PrecomputedYZW) {
                 channel_.set(0);
             }
         }
@@ -138,11 +138,11 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     isotfComposite_Cell_.set(&tf_new);
     addProperty(isotfComposite_Cell_);
 
-    addProperty(isotfComposite_trial_);
+    addProperty(transferFunc_);
 }
 
 void CustomVolumeRayCaster::initializeResources() {
-    utilgl::addDefines(shader_, raycasting_, isotfComposite_Cell_,isotfComposite_trial_, camera_, lighting_, positionIndicator_);
+    utilgl::addDefines(shader_, raycasting_, isotfComposite_Cell_, camera_, lighting_, positionIndicator_);
     utilgl::addShaderDefinesBGPort(shader_, backgroundPort_);
     shader_.build();
 }
@@ -176,7 +176,6 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
     TextureUnitContainer units;
     utilgl::bindAndSetUniforms(shader_, units, volume, "volume");
     utilgl::bindAndSetUniforms(shader_, units, isotfComposite_Cell_);
-    utilgl::bindAndSetUniforms(shader_, units, isotfComposite_trial_);
     utilgl::bindAndSetUniforms(shader_, units, entryPort_, ImageType::ColorDepthPicking);
     utilgl::bindAndSetUniforms(shader_, units, exitPort_, ImageType::ColorDepth);
     if (backgroundPort_.hasData()) {
@@ -191,8 +190,11 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
         shader_.setUniform("useNormals", false);
     }
 
+    // NEW-------------------
+    utilgl::bindAndSetUniforms(shader_, units, transferFunc_);
+    //NEW END----------------
     utilgl::setUniforms(shader_, outport_, camera_, lighting_, raycasting_, positionIndicator_,
-                        channel_, isotfComposite_Cell_, isotfComposite_trial_);
+                        channel_, isotfComposite_Cell_);
 
     utilgl::singleDrawImagePlaneRect();
 

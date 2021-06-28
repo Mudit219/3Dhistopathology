@@ -36,7 +36,7 @@
 #include <inviwo/core/processors/poolprocessor.h>
 #include <inviwo/core/properties/optionproperty.h>
 #include <inviwo/core/properties/isotfproperty.h>
-#include <inviwo/core/properties/raycastingproperty.h>
+#include <inviwo/core/properties/customraycastingproperty.h>
 #include <inviwo/core/properties/simplelightingproperty.h>
 #include <inviwo/core/properties/cameraproperty.h>
 #include <inviwo/core/properties/compositeproperty.h>
@@ -103,14 +103,16 @@ protected:
     ImageOutport outport_;
 
     OptionPropertyInt channel_;
-    RaycastingProperty raycasting_;
+    CustomRaycastingProperty raycasting_;
     IsoTFProperty isotfComposite_Cell_;
-    IsoTFProperty isotfComposite_trial_;
 
+    TransferFunctionProperty transferFunc_;
+    
     CameraProperty camera_;
     SimpleLightingProperty lighting_;
     VolumeIndicatorProperty positionIndicator_;
     EventProperty toggleShading_;
+
 };
 
 }  // namespace inviwo

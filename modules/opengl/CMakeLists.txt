@@ -114,6 +114,7 @@ set(SHADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/minimal.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/picking.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/raycasting.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/glsl/customraycasting.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/rendertexturequad.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/rendertexturequad.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/glsl/standard.frag

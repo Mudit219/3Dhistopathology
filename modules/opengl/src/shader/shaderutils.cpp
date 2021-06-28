@@ -297,6 +297,166 @@ void setShaderUniforms(Shader& shader, const RaycastingProperty& property, std::
     shader.setUniform(buff.replace("{}.samplingRate", name), property.samplingRate_.get());
 }
 
+// CustomRaycastingProperty Starts
+
+void addShaderDefines(Shader& shader, const CustomRaycastingProperty& property) {
+    {
+        // rendering type
+        switch (property.renderingType_.get()) {
+            case CustomRaycastingProperty::RenderingType::Dvr:
+            default:
+                shader.getFragmentShaderObject()->addShaderDefine("INCLUDE_DVR");
+                shader.getFragmentShaderObject()->removeShaderDefine("INCLUDE_ISOSURFACES");
+                break;
+        }
+    }
+
+    {
+        // classification (default (red channel) or specific channel)
+        std::string_view value;
+        std::string_view valueMulti;
+        switch (property.classification_.get()) {
+            case CustomRaycastingProperty::Classification::None:
+                value = "vec4(voxel.r)";
+                valueMulti = "vec4(voxel[channel])";
+                break;
+            case CustomRaycastingProperty::Classification::TF:
+                value = "getColorVal(pointValue, voxel)";
+                valueMulti = "getColorVal(pointValue, voxel, channel)";
+                break;
+            case CustomRaycastingProperty::Classification::Voxel:
+            default:
+                value = "voxel";
+                valueMulti = "voxel";
+                break;
+        }
+        const std::string_view key = "APPLY_CLASSIFICATION(pointValue, voxel)";
+        const std::string_view keyMulti =
+            "APPLY_CHANNEL_CLASSIFICATION(pointValue, voxel, channel)";
+        shader.getFragmentShaderObject()->addShaderDefine(key, value);
+        shader.getFragmentShaderObject()->addShaderDefine(keyMulti, valueMulti);
+    }
+
+    {
+        // compositing
+        std::string_view value;
+        switch (property.compositing_.get()) {
+            case CustomRaycastingProperty::CompositingType::Dvr:
+                value = "compositeDVR(result, color, t, tDepth, tIncr)";
+                break;
+            case CustomRaycastingProperty::CompositingType::MaximumIntensity:
+                value = "compositeMIP(result, color, t, tDepth)";
+                break;
+            case CustomRaycastingProperty::CompositingType::FirstHitPoints:
+                value = "compositeFHP(result, color, samplePos, t, tDepth)";
+                break;
+            case CustomRaycastingProperty::CompositingType::FirstHitNormals:
+                value = "compositeFHN(result, color, gradient, t, tDepth)";
+                break;
+            case CustomRaycastingProperty::CompositingType::FirstHistNormalsView:
+                value = "compositeFHN_VS(result, color, gradient, t, camera, tDepth)";
+                break;
+            case CustomRaycastingProperty::CompositingType::FirstHitDepth:
+                value = "compositeFHD(result, color, t, tDepth)";
+                break;
+            default:
+                value = "result";
+                break;
+        }
+        const std::string_view key =
+            "APPLY_COMPOSITING(result, color, samplePos, voxel, gradient, camera, isoValue, t, "
+            "tDepth, tIncr)";
+        shader.getFragmentShaderObject()->addShaderDefine(key, value);
+    }
+
+    // gradients
+    setShaderDefines(shader, property.gradientComputation_,
+                     property.classification_.get() == CustomRaycastingProperty::Classification::Voxel);
+}
+
+void setShaderDefines(
+    Shader& shader, const TemplateOptionProperty<CustomRaycastingProperty::GradientComputation>& property,
+    bool voxelClassification) {
+
+    const std::string_view channel = (voxelClassification ? "3" : "channel");
+    const std::string_view channelDef = (voxelClassification ? "3" : "0");
+
+    std::string_view value;         // compute gradient for default channel
+    std::string_view valueChannel;  // compute gradient for specific channel
+    std::string_view valueAll;      // compute gradient for all channels
+    switch (property.get()) {
+        case CustomRaycastingProperty::GradientComputation::None:
+        default:
+            value = "vec3(0)";
+            valueChannel = "vec3(0)";
+            valueAll = "mat4x3(0)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::Forward:
+            value = "gradientForwardDiff(voxel, volume, volumeParams, samplePos, {channelDef})";
+            valueChannel = "gradientForwardDiff(voxel, volume, volumeParams, samplePos, {channel})";
+            valueAll = "gradientAllForwardDiff(voxel, volume, volumeParams, samplePos)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::Backward:
+            value = "gradientBackwardDiff(voxel, volume, volumeParams, samplePos, {channelDef})";
+            valueChannel =
+                "gradientBackwardDiff(voxel, volume, volumeParams, samplePos, {channel})";
+            valueAll = "gradientAllBackwardDiff(voxel, volume, volumeParams, samplePos)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::Central:
+            value = "gradientCentralDiff(voxel, volume, volumeParams, samplePos, {channelDef})";
+            valueChannel = "gradientCentralDiff(voxel, volume, volumeParams, samplePos, {channel})";
+            valueAll = "gradientAllCentralDiff(voxel, volume, volumeParams, samplePos)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::CentralHigherOrder:
+            value = "gradientCentralDiffH(voxel, volume, volumeParams, samplePos, {channelDef})";
+            valueChannel =
+                "gradientCentralDiffH(voxel, volume, volumeParams, samplePos, {channel})";
+            valueAll = "gradientAllCentralDiffH(voxel, volume, volumeParams, samplePos)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::PrecomputedXYZ:
+            value = valueChannel = valueAll = "gradientPrecomputedXYZ(voxel, volumeParams)";
+            break;
+        case CustomRaycastingProperty::GradientComputation::PrecomputedYZW:
+            value = valueChannel = valueAll = "gradientPrecomputedYZW(voxel, volumeParams)";
+            break;
+    }
+
+    // gradient for channel 1
+    const std::string_view key = "COMPUTE_GRADIENT(voxel, volume, volumeParams, samplePos)";
+    // gradient for specific channel
+    const std::string_view keyChannel =
+        "COMPUTE_GRADIENT_FOR_CHANNEL(voxel, volume, volumeParams, samplePos, channel)";
+    // gradients for all channels
+    const std::string_view keyAll = "COMPUTE_ALL_GRADIENTS(voxel, volume, volumeParams, samplePos)";
+
+    StrBuffer buff;
+    buff.replace(value, fmt::arg("channelDef", channelDef));
+    shader.getFragmentShaderObject()->addShaderDefine(key, buff);
+
+    buff.replace(valueChannel, fmt::arg("channel", channel));
+    shader.getFragmentShaderObject()->addShaderDefine(keyChannel, buff);
+
+    shader.getFragmentShaderObject()->addShaderDefine(keyAll, valueAll);
+
+    if (property.get() != CustomRaycastingProperty::GradientComputation::None) {
+        shader.getFragmentShaderObject()->addShaderDefine("GRADIENTS_ENABLED");
+    } else {
+        shader.getFragmentShaderObject()->removeShaderDefine("GRADIENTS_ENABLED");
+    }
+}
+
+void setShaderUniforms(Shader& shader, const CustomRaycastingProperty& property) {
+    shader.setUniform("samplingRate_", property.samplingRate_.get());
+}
+
+void setShaderUniforms(Shader& shader, const CustomRaycastingProperty& property, std::string_view name) {
+    StrBuffer buff;
+    shader.setUniform(buff.replace("{}.samplingRate", name), property.samplingRate_.get());
+}
+
+
+// CustomRaycastingProperty Ends
+
 void setShaderUniforms(Shader& shader, const SpatialEntity<3>& object, std::string_view name) {
     const SpatialCoordinateTransformer<3>& ct = object.getCoordinateTransformer();
 
