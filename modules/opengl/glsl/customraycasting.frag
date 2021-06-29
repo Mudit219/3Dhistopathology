@@ -44,13 +44,16 @@ uniform bool useNormals = false;
 
 uniform int channel;
 
+uniform vec4 pointValue;
+
+
 #define ERT_THRESHOLD 0.99  // threshold for early ray termination
 
 #if (!defined(INCLUDE_DVR) && !defined(INCLUDE_ISOSURFACES))
 #  define INCLUDE_DVR
 #endif
 
-vec4 getColorVal(vec3 colorPoint, vec4 voxel)
+vec4 getColorVal(vec4 colorPoint, vec4 voxel)
 {
     if(voxel.r > colorPoint.r - 0.1 && voxel.r < colorPoint.r + 0.1)
     {
@@ -65,7 +68,7 @@ vec4 getColorVal(vec3 colorPoint, vec4 voxel)
     return vec4(0.0,0.0,0.0,0.0);
 }
 
-vec4 getColorVal(vec3 colorPoint, vec4 voxel, int channel)
+vec4 getColorVal(vec4 colorPoint, vec4 voxel, int channel)
 {
     if(voxel[channel] > colorPoint[channel] - 0.1 && voxel[channel] < colorPoint[channel] + 0.1)
     {
@@ -77,8 +80,6 @@ vec4 getColorVal(vec3 colorPoint, vec4 voxel, int channel)
     }
     return vec4(0.0,0.0,0.0,0.0);
 }
-
-uniform vec3 pointValue = vec3(0.16, 0.06, 0.24);
 
 vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgroundDepth, vec3 entryNormal) {
     vec4 result = vec4(0.0);

@@ -49,6 +49,7 @@
 #include <inviwo/core/properties/transferfunctionproperty.h>
 #include <inviwo/core/datastructures/transferfunction.h>
 
+#include <inviwo/core/properties/ordinalproperty.h>
 
 namespace inviwo {
 
@@ -105,14 +106,18 @@ protected:
     OptionPropertyInt channel_;
     CustomRaycastingProperty raycasting_;
     IsoTFProperty isotfComposite_Cell_;
-
-    TransferFunctionProperty transferFunc_;
     
     CameraProperty camera_;
     SimpleLightingProperty lighting_;
     VolumeIndicatorProperty positionIndicator_;
     EventProperty toggleShading_;
 
+    FloatVec4Property viewColor_; //Make into a set of points later on
+
 };
 
 }  // namespace inviwo
+
+/*
+*  NOTE: refer to drawpoints.cpp for multiple points generation
+*/

@@ -66,12 +66,11 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     , raycasting_("raycaster", "Raycasting")
     , isotfComposite_Cell_("isotfComposite_Cell", "TF & IsoValues - Cell", &volumePort_,
                             InvalidationLevel::InvalidResources)
-    , transferFunc_("transferFunction", "Transfer Function - 1", &volumePort_, 
-                            InvalidationLevel::InvalidResources)
     , camera_("camera", "Camera", util::boundingBox(volumePort_))
     , lighting_("lighting", "Lighting", &camera_)
     , positionIndicator_("positionindicator", "Position Indicator")
     , toggleShading_("toggleShading", "Toggle Shading", [this](Event* e) { toggleShading(e);}, IvwKey::L)
+    , viewColor_("viewColor", "View Color", vec4(0.16, 0.06, 0.24,1.0))
     
 {
     shader_.onReload([this]() { invalidate(InvalidationLevel::InvalidResources); });         
@@ -138,7 +137,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     isotfComposite_Cell_.set(&tf_new);
     addProperty(isotfComposite_Cell_);
 
-    addProperty(transferFunc_);
+    addProperty(viewColor_);
 }
 
 void CustomVolumeRayCaster::initializeResources() {
@@ -190,9 +189,9 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
         shader_.setUniform("useNormals", false);
     }
 
-    // NEW-------------------
-    utilgl::bindAndSetUniforms(shader_, units, transferFunc_);
-    //NEW END----------------
+    // ADDING SELECTED COLOR
+    shader_.setUniform("pointValue", viewColor_);
+    // END
     utilgl::setUniforms(shader_, outport_, camera_, lighting_, raycasting_, positionIndicator_,
                         channel_, isotfComposite_Cell_);
 
