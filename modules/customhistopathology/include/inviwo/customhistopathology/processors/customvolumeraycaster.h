@@ -105,7 +105,7 @@ protected:
 
     OptionPropertyInt channel_;
     CustomRaycastingProperty raycasting_;
-    IsoTFProperty isotfComposite_Cell_;
+    // IsoTFProperty isotfComposite_Cell_;
     
     CameraProperty camera_;
     SimpleLightingProperty lighting_;

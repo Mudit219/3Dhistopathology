@@ -33,6 +33,7 @@
 #include <modules/base/processors/buffertomeshprocessor.h>
 #include <modules/base/processors/convexhull2dprocessor.h>
 #include <modules/base/processors/cubeproxygeometryprocessor.h>
+#include <modules/base/processors/custompixelvalue.h>
 #include <modules/base/processors/diffuselightsourceprocessor.h>
 #include <modules/base/processors/directionallightsourceprocessor.h>
 #include <modules/base/processors/distancetransformram.h>
@@ -137,6 +138,7 @@ using WorldTransformVolumeDeprecated = WorldTransformDeprecated<Volume>;
 BaseModule::BaseModule(InviwoApplication* app) : InviwoModule(app, "Base") {
     registerProcessor<ConvexHull2DProcessor>();
     registerProcessor<CubeProxyGeometry>();
+    registerProcessor<CustomPixelValue>();
     registerProcessor<DiffuseLightSourceProcessor>();
     registerProcessor<DirectionalLightSourceProcessor>();
     registerProcessor<DistanceTransformRAM>();

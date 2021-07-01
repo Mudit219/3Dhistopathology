@@ -15,7 +15,7 @@
 uniform VolumeParameters volumeParameters;
 uniform sampler3D volume;
 
-uniform sampler2D transferFunction;
+// uniform sampler2D transferFunction;
 
 uniform ImageParameters entryParameters;
 uniform sampler2D entryColor;

@@ -50,6 +50,7 @@ set(HEADER_FILES
     include/modules/base/processors/camerafrustum.h
     include/modules/base/processors/convexhull2dprocessor.h
     include/modules/base/processors/cubeproxygeometryprocessor.h
+    include/modules/base/processors/custompixelvalue.h
     include/modules/base/processors/dataexport.h
     include/modules/base/processors/datasource.h
     include/modules/base/processors/diffuselightsourceprocessor.h
@@ -175,6 +176,7 @@ set(SOURCE_FILES
     src/processors/camerafrustum.cpp
     src/processors/convexhull2dprocessor.cpp
     src/processors/cubeproxygeometryprocessor.cpp
+    src/processors/custompixelvalue.cpp
     src/processors/diffuselightsourceprocessor.cpp
     src/processors/directionallightsourceprocessor.cpp
     src/processors/distancetransformram.cpp

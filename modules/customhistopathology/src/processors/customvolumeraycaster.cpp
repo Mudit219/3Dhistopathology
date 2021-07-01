@@ -64,13 +64,12 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     , outport_("outport")
     , channel_("channel", "Render Channel", {{"Channel 1", "Channel 1", 0}}, 0)
     , raycasting_("raycaster", "Raycasting")
-    , isotfComposite_Cell_("isotfComposite_Cell", "TF & IsoValues - Cell", &volumePort_,
-                            InvalidationLevel::InvalidResources)
     , camera_("camera", "Camera", util::boundingBox(volumePort_))
     , lighting_("lighting", "Lighting", &camera_)
     , positionIndicator_("positionindicator", "Position Indicator")
     , toggleShading_("toggleShading", "Toggle Shading", [this](Event* e) { toggleShading(e);}, IvwKey::L)
-    , viewColor_("viewColor", "View Color", vec4(0.16, 0.06, 0.24,1.0))
+    , viewColor_("viewColor", "View Color", vec4(0.16, 0.06, 0.24,1.0), vec4(0.0f), vec4(1.0f), vec4(0.01f),
+             InvalidationLevel::InvalidOutput, PropertySemantics::Color)
     
 {
     shader_.onReload([this]() { invalidate(InvalidationLevel::InvalidResources); });         
@@ -122,26 +121,12 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     addProperty(lighting_);
     addProperty(positionIndicator_);
     addProperty(toggleShading_);
-
-    /*
-    * Added a custom transfer function
-    * To change - take the colour value of the cells
-    * 
-    */
-    TransferFunction tf({
-                        {0.47644903694373958, vec4(0.78823531, 0.54509807, 0.80000001, 0.99101126)},
-                        {0.079709668090377911, vec4(0,0,0,0)}, 
-                        {0.62681159420289856, vec4(0.34509805, 0.046005949, 0.16066225, 0)}
-                        });
-    TransferFunctionProperty tf_new("transferFunction", "Transfer Function Cell", tf, &volumePort_);
-    isotfComposite_Cell_.set(&tf_new);
-    addProperty(isotfComposite_Cell_);
-
     addProperty(viewColor_);
 }
 
 void CustomVolumeRayCaster::initializeResources() {
-    utilgl::addDefines(shader_, raycasting_, isotfComposite_Cell_, camera_, lighting_, positionIndicator_);
+    // utilgl::addDefines(shader_, raycasting_, isotfComposite_Cell_, camera_, lighting_, positionIndicator_);
+    utilgl::addDefines(shader_, raycasting_, camera_, lighting_, positionIndicator_);
     utilgl::addShaderDefinesBGPort(shader_, backgroundPort_);
     shader_.build();
 }
@@ -174,7 +159,6 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
 
     TextureUnitContainer units;
     utilgl::bindAndSetUniforms(shader_, units, volume, "volume");
-    utilgl::bindAndSetUniforms(shader_, units, isotfComposite_Cell_);
     utilgl::bindAndSetUniforms(shader_, units, entryPort_, ImageType::ColorDepthPicking);
     utilgl::bindAndSetUniforms(shader_, units, exitPort_, ImageType::ColorDepth);
     if (backgroundPort_.hasData()) {
@@ -193,7 +177,7 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
     shader_.setUniform("pointValue", viewColor_);
     // END
     utilgl::setUniforms(shader_, outport_, camera_, lighting_, raycasting_, positionIndicator_,
-                        channel_, isotfComposite_Cell_);
+                        channel_);
 
     utilgl::singleDrawImagePlaneRect();
 
