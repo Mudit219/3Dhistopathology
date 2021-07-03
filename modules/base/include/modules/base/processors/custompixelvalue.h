@@ -37,6 +37,7 @@
 #include <inviwo/core/processors/processor.h>
 #include <inviwo/core/properties/ordinalproperty.h>
 #include <inviwo/core/ports/imageport.h>
+#include <inviwo/core/ports/vector4port.h>
 #include <inviwo/core/properties/stringproperty.h>
 #include <inviwo/core/properties/eventproperty.h>
 
@@ -79,6 +80,7 @@ private:
     
     ImageInport inport_;
     ImageOutport outport_;
+    Vec4Outport vecOutport_;
 
     IntSize2Property coordinates_;
     std::vector<DoubleVec4Property> pixelValues_;
@@ -91,6 +93,7 @@ private:
     StringProperty depthStrValue_;
 
     EventProperty mouseClick_;
+    // std::shared_ptr<std::vector<inviwo::vec4>> areaPixelsData_;
 };
 
 }  // namespace inviwo

@@ -37,6 +37,8 @@
 
 namespace inviwo {
 
+auto areaPixelsNormalized_ = std::make_shared<std::vector<inviwo::vec4>>();  //Will store the set of pixel colors. 
+        
 // The Class Identifier has to be globally unique. Use a reverse DNS naming scheme
 const ProcessorInfo CustomPixelValue::processorInfo_{
     "org.inviwo.CustomPixelValue",      // Class identifier
@@ -51,6 +53,7 @@ CustomPixelValue::CustomPixelValue()
     : Processor()
     , inport_("inport", true)
     , outport_("outport", false)
+    , vecOutport_("outport2")
     , coordinates_("Coordinates", "Coordinates", size2_t(0),
                    size2_t(std::numeric_limits<size_t>::lowest()),
                    size2_t(std::numeric_limits<size_t>::max()), size2_t(1),
@@ -143,9 +146,12 @@ CustomPixelValue::CustomPixelValue()
           "mouseClick", "Mouse Click", [this](Event* e) { mouseClickEvent(e); },
           MouseButton::Left, MouseStates(flags::any), KeyModifiers(flags::none),
           InvalidationLevel::InvalidOutput,PropertySemantics::Default)
+    // ,areaPixelsData_()
+
 {
     addPort(inport_);
     addPort(outport_);
+    addPort(vecOutport_);
 
     for (int i = 0; i < 8; i++) {
         pixelValues_[i].setVisible(i == 0);
@@ -180,7 +186,42 @@ CustomPixelValue::CustomPixelValue()
     }
 }
 
-void CustomPixelValue::process() { outport_.setData(inport_.getData());}
+void CustomPixelValue::process() 
+{ 
+    outport_.setData(inport_.getData());
+    vecOutport_.setData(areaPixelsNormalized_.get());    
+}
+
+void getRegionColors(std::shared_ptr<const Image> img, size2_t pos, std::shared_ptr<std::vector<inviwo::vec4>> areaPixelsNormalized_ )
+{
+    auto dims = img->getDimensions();
+    auto numCh = img->getNumberOfColorLayers();
+
+    for (size_t i = 0; i < numCh; i++) {
+            img->getColorLayer(i)
+                ->getRepresentation<LayerRAM>()
+                ->dispatch<void, dispatching::filter::All>([&](const auto layer) {
+                    using ValueType = util::PrecisionValueType<decltype(layer)>;
+                    using Comp = typename util::value_type<ValueType>::type;
+                    const auto data = layer->getDataTyped();
+                    const auto im = util::IndexMapper2D(dims);
+
+                    auto value = data[im(pos)];
+                    auto v = util::glm_convert<glm::vec<4, Comp>>(value);
+                    v = util::applySwizzleMask(v, img->getColorLayer(i)->getSwizzleMask());
+
+                    auto vf = util::glm_convert<glm::vec<4, float>>(v);
+                    if constexpr (std::is_integral_v<Comp>) {
+                        vf /= std::numeric_limits<Comp>::max();
+                    }
+                    if(std::find(areaPixelsNormalized_->begin(), areaPixelsNormalized_->end(), vf) == areaPixelsNormalized_->end())
+                    {
+                        areaPixelsNormalized_->push_back(vf);
+                    }
+                });
+        }
+    return;
+}
 
 void CustomPixelValue::mouseClickEvent(Event* theevent) {
     if (!inport_.hasData()) return;
@@ -191,11 +232,11 @@ void CustomPixelValue::mouseClickEvent(Event* theevent) {
         auto numCh = img->getNumberOfColorLayers();
         auto p = mouseEvent->posNormalized();
         if (glm::any(glm::lessThan(p, dvec2(0, 0))) || glm::any(glm::greaterThan(p, dvec2(1, 1)))) {
-            // This can happen a lot when having a image layout
-            return;
+             return;
         }
         const size2_t pos{p * dvec2(dims - size2_t(1))};
         coordinates_.set(pos);
+
         for (size_t i = 0; i < numCh; i++) {
             img->getColorLayer(i)
                 ->getRepresentation<LayerRAM>()
@@ -222,6 +263,40 @@ void CustomPixelValue::mouseClickEvent(Event* theevent) {
                     }
                     pixelValuesNormalized_[i].set(vf);
                 });
+        }
+
+        // auto areaPixelsNormalized_ = std::make_shared<std::vector<inviwo::vec4>>();  //Will store the set of pixel colors. 
+        // getRegionColors(img);
+        int radius = 5;
+        for(int i=0; i < radius;i++)
+        {
+            for(int j=0; j< radius; j++)
+            {
+                auto a = coordinates_.get();
+                a[0] += i;
+                a[1] += radius - j;
+                const size2_t a_pos{a};
+                getRegionColors(img, a_pos, areaPixelsNormalized_);
+
+                auto b = coordinates_.get();
+                b[0] += i;
+                b[1] += - radius + j;
+                const size2_t b_pos{b};
+                getRegionColors(img, b_pos, areaPixelsNormalized_);
+
+                auto c = coordinates_.get();
+                c[0] += -i;
+                c[1] += radius - j;
+                const size2_t c_pos{c};
+                getRegionColors(img, c_pos, areaPixelsNormalized_);
+
+                auto d = coordinates_.get();
+                d[0] += -i;
+                d[1] += -radius + j;
+                const size2_t d_pos{d};
+                getRegionColors(img, d_pos, areaPixelsNormalized_);
+
+            }
         }
 
         auto pickV = img->getPickingLayer()->getRepresentation<LayerRAM>()->getAsDVec4(pos);
