@@ -44,8 +44,8 @@ uniform bool useNormals = false;
 
 uniform int channel;
 
-uniform vec4 pointValue;
-
+#define MAX_COLORS 300
+uniform vec4 colorArray[MAX_COLORS];
 
 #define ERT_THRESHOLD 0.99  // threshold for early ray termination
 
@@ -53,29 +53,44 @@ uniform vec4 pointValue;
 #  define INCLUDE_DVR
 #endif
 
-vec4 getColorVal(vec4 colorPoint, vec4 voxel)
+uniform int colorLen;
+
+vec4 getColorVal(vec4 colorArray[MAX_COLORS], vec4 voxel)
 {
-    if(voxel.r > colorPoint.r - 0.1 && voxel.r < colorPoint.r + 0.1)
+
+    if (colorLen == 0)return voxel;
+
+    for(int i=0; i< colorLen;i++)
     {
-        if(voxel.g > colorPoint.g - 0.1 && voxel.g < colorPoint.g + 0.1)
-        {
-            if(voxel.b > colorPoint.b - 0.1 && voxel.b < colorPoint.b + 0.1)
+        if(voxel.r <= colorArray[i].r + 0.01 && voxel.r >= colorArray[i].r - 0.01) 
+        {  
+            if (voxel.g <= colorArray[i].g + 0.01 && voxel.g >= colorArray[i].g - 0.01)
             {
-                return voxel;
+                if(voxel.b <= colorArray[i].b + 0.01 && voxel.b >= colorArray[i].b - 0.01)
+                {
+                    if(colorArray[i].a != 0.0)
+                    {    return voxel;}
+                    else
+                    {    return vec4(0.0,0.0,0.0,0.0);}
+                }
             }
         }
     }
     return vec4(0.0,0.0,0.0,0.0);
+    // return trial;
 }
 
-vec4 getColorVal(vec4 colorPoint, vec4 voxel, int channel)
+vec4 getColorVal(vec4 colorArray[MAX_COLORS], vec4 voxel, int channel)
 {
-    if(voxel[channel] > colorPoint[channel] - 0.1 && voxel[channel] < colorPoint[channel] + 0.1)
+    for(int i=0;i <MAX_COLORS;i++)
     {
-        switch(channel){
-            case 0: return vec4(voxel[0],0.0,0.0,0.0);
-            case 1: return vec4(0.0,voxel[1],0.0,0.0);
-            case 2: return vec4(0.0,0.0,voxel[2],0.0);
+        if(voxel[channel] == colorArray[i][channel])
+        {
+            switch(channel){
+                case 0: return vec4(voxel[0],0.0,0.0,0.0);
+                case 1: return vec4(0.0,voxel[1],0.0,0.0);
+                case 2: return vec4(0.0,0.0,voxel[2],0.0);
+            }
         }
     }
     return vec4(0.0,0.0,0.0,0.0);
@@ -132,7 +147,7 @@ vec4 rayTraversal(vec3 entryPoint, vec3 exitPoint, vec2 texCoords, float backgro
 
     #if defined(INCLUDE_DVR)
             // color = APPLY_CHANNEL_CLASSIFICATION(transferFunction, voxel, channel);
-            color = APPLY_CLASSIFICATION(pointValue, voxel);
+            color = APPLY_CLASSIFICATION(colorArray, voxel);
             if (color.a > 0) {
                 
                 vec3 gradient;

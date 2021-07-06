@@ -76,6 +76,8 @@ public:
     virtual const ProcessorInfo getProcessorInfo() const override;
     static const ProcessorInfo processorInfo_;
 
+    void getRegionColors(size2_t);
+
 private:
     
     ImageInport inport_;
@@ -93,7 +95,7 @@ private:
     StringProperty depthStrValue_;
 
     EventProperty mouseClick_;
-    // std::shared_ptr<std::vector<inviwo::vec4>> areaPixelsData_;
+    std::vector<inviwo::vec4> areaPixelsData_;
 };
 
 }  // namespace inviwo

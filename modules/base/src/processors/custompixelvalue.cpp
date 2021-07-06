@@ -144,9 +144,9 @@ CustomPixelValue::CustomPixelValue()
 
     , mouseClick_(
           "mouseClick", "Mouse Click", [this](Event* e) { mouseClickEvent(e); },
-          MouseButton::Left, MouseStates(flags::any), KeyModifiers(flags::none),
+          MouseButton::Left, MouseState::Press, KeyModifiers(flags::none),
           InvalidationLevel::InvalidOutput,PropertySemantics::Default)
-    // ,areaPixelsData_()
+    ,areaPixelsData_({inviwo::vec4(0.0,0.0,0.0,0.0)})
 
 {
     addPort(inport_);
@@ -189,13 +189,50 @@ CustomPixelValue::CustomPixelValue()
 void CustomPixelValue::process() 
 { 
     outport_.setData(inport_.getData());
-    vecOutport_.setData(areaPixelsNormalized_.get());    
+    vecOutport_.setData(std::move(areaPixelsData_)); 
+    // std::cout << areaPixelsData_.size() << std::endl;   
 }
 
-void getRegionColors(std::shared_ptr<const Image> img, size2_t pos, std::shared_ptr<std::vector<inviwo::vec4>> areaPixelsNormalized_ )
+// void CustomPixelValue::getRegionColors(std::shared_ptr<const Image> img, size2_t pos )
+// {
+//     auto dims = img->getDimensions();
+//     auto numCh = img->getNumberOfColorLayers();
+
+//     for (size_t i = 0; i < numCh; i++) {
+//             img->getColorLayer(i)
+//                 ->getRepresentation<LayerRAM>()
+//                 ->dispatch<void, dispatching::filter::All>([&](const auto layer) {
+//                     using ValueType = util::PrecisionValueType<decltype(layer)>;
+//                     using Comp = typename util::value_type<ValueType>::type;
+//                     const auto data = layer->getDataTyped();
+//                     const auto im = util::IndexMapper2D(dims);
+
+//                     auto value = data[im(pos)];
+//                     auto v = util::glm_convert<glm::vec<4, Comp>>(value);
+//                     v = util::applySwizzleMask(v, img->getColorLayer(i)->getSwizzleMask());
+
+//                     auto vf = util::glm_convert<glm::vec<4, float>>(v);
+//                     if constexpr (std::is_integral_v<Comp>) {
+//                         vf /= std::numeric_limits<Comp>::max();
+//                     }
+//                     if(std::find(areaPixelsData_->begin(), areaPixelsData_->end(), vf) == areaPixelsData_->end())
+//                     {
+//                         // auto temp = glm::vec4(1.0,0.0,0.0,1.0);
+//                         areaPixelsData_->push_back(vf);
+//                         // areaPixelsData_->push_back(temp);
+//                     }
+//                 });
+//         }
+//     return;
+// }
+
+void CustomPixelValue::getRegionColors(size2_t pos )
 {
+    auto img = inport_.getData();
     auto dims = img->getDimensions();
     auto numCh = img->getNumberOfColorLayers();
+
+    // std::cout << pos << ":: \n";
 
     for (size_t i = 0; i < numCh; i++) {
             img->getColorLayer(i)
@@ -214,9 +251,10 @@ void getRegionColors(std::shared_ptr<const Image> img, size2_t pos, std::shared_
                     if constexpr (std::is_integral_v<Comp>) {
                         vf /= std::numeric_limits<Comp>::max();
                     }
-                    if(std::find(areaPixelsNormalized_->begin(), areaPixelsNormalized_->end(), vf) == areaPixelsNormalized_->end())
+                    if(std::find(areaPixelsData_.begin(), areaPixelsData_.end(), vf) == areaPixelsData_.end())
                     {
-                        areaPixelsNormalized_->push_back(vf);
+                        areaPixelsData_.push_back(vf);
+                        // std::cout << "\t" << areaPixelsData_.size() << std::endl;
                     }
                 });
         }
@@ -226,6 +264,8 @@ void getRegionColors(std::shared_ptr<const Image> img, size2_t pos, std::shared_
 void CustomPixelValue::mouseClickEvent(Event* theevent) {
     if (!inport_.hasData()) return;
 
+    areaPixelsData_.clear();
+    
     if (auto mouseEvent = theevent->getAs<MouseEvent>()) {
         auto img = inport_.getData();
         auto dims = img->getDimensions();
@@ -265,39 +305,41 @@ void CustomPixelValue::mouseClickEvent(Event* theevent) {
                 });
         }
 
-        // auto areaPixelsNormalized_ = std::make_shared<std::vector<inviwo::vec4>>();  //Will store the set of pixel colors. 
-        // getRegionColors(img);
-        int radius = 5;
+        
+        int radius = 10;
         for(int i=0; i < radius;i++)
         {
             for(int j=0; j< radius; j++)
             {
                 auto a = coordinates_.get();
                 a[0] += i;
-                a[1] += radius - j;
+                a[1] += j;
                 const size2_t a_pos{a};
-                getRegionColors(img, a_pos, areaPixelsNormalized_);
+                getRegionColors(a_pos);
+
+                if(i == 0 && j == 0)continue;
 
                 auto b = coordinates_.get();
                 b[0] += i;
-                b[1] += - radius + j;
+                b[1] -= j;
                 const size2_t b_pos{b};
-                getRegionColors(img, b_pos, areaPixelsNormalized_);
+                getRegionColors(b_pos);
 
                 auto c = coordinates_.get();
-                c[0] += -i;
-                c[1] += radius - j;
+                c[0] -= i;
+                c[1] += j;
                 const size2_t c_pos{c};
-                getRegionColors(img, c_pos, areaPixelsNormalized_);
+                getRegionColors(c_pos);
 
                 auto d = coordinates_.get();
-                d[0] += -i;
-                d[1] += -radius + j;
+                d[0] -= i;
+                d[1] -= j;
                 const size2_t d_pos{d};
-                getRegionColors(img, d_pos, areaPixelsNormalized_);
+                getRegionColors(d_pos);
 
             }
         }
+        // std::cout << "------------" << std::endl;
 
         auto pickV = img->getPickingLayer()->getRepresentation<LayerRAM>()->getAsDVec4(pos);
         auto depthV = img->getDepthLayer()->getRepresentation<LayerRAM>()->getAsDouble(pos);
@@ -307,6 +349,9 @@ void CustomPixelValue::mouseClickEvent(Event* theevent) {
 
         pickingStrValue_.set(toString(pickV));
         depthStrValue_.set(toString(depthV));
+
+        vecOutport_.setData(std::move(areaPixelsData_)); 
+        // std::cout << areaPixelsData_.size() << std::endl;   
     }
 }
 

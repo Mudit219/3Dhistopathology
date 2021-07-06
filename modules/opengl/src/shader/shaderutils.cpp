@@ -321,8 +321,8 @@ void addShaderDefines(Shader& shader, const CustomRaycastingProperty& property) 
                 valueMulti = "vec4(voxel[channel])";
                 break;
             case CustomRaycastingProperty::Classification::TF:
-                value = "getColorVal(pointValue, voxel)";
-                valueMulti = "getColorVal(pointValue, voxel, channel)";
+                value = "getColorVal(colorArray, voxel)";
+                valueMulti = "getColorVal(colorArray, voxel, channel)";
                 break;
             case CustomRaycastingProperty::Classification::Voxel:
             default:
@@ -330,9 +330,9 @@ void addShaderDefines(Shader& shader, const CustomRaycastingProperty& property) 
                 valueMulti = "voxel";
                 break;
         }
-        const std::string_view key = "APPLY_CLASSIFICATION(pointValue, voxel)";
+        const std::string_view key = "APPLY_CLASSIFICATION(colorArray, voxel)";
         const std::string_view keyMulti =
-            "APPLY_CHANNEL_CLASSIFICATION(pointValue, voxel, channel)";
+            "APPLY_CHANNEL_CLASSIFICATION(colorArray, voxel, channel)";
         shader.getFragmentShaderObject()->addShaderDefine(key, value);
         shader.getFragmentShaderObject()->addShaderDefine(keyMulti, valueMulti);
     }

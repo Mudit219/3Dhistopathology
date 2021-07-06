@@ -44,6 +44,7 @@
 #include <inviwo/core/properties/volumeindicatorproperty.h>
 #include <inviwo/core/ports/imageport.h>
 #include <inviwo/core/ports/volumeport.h>
+#include <inviwo/core/ports/vector4port.h>
 #include <modules/opengl/shader/shader.h>
 
 #include <inviwo/core/properties/transferfunctionproperty.h>
@@ -101,6 +102,7 @@ protected:
     ImageInport entryPort_;
     ImageInport exitPort_;
     ImageInport backgroundPort_;
+    Vec4Inport colorsPort_;
     ImageOutport outport_;
 
     OptionPropertyInt channel_;

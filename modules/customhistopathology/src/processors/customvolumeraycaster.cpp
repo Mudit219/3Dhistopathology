@@ -41,6 +41,7 @@
 #include <inviwo/core/common/inviwoapplication.h>
 #include <inviwo/core/util/rendercontext.h>
 #include <inviwo/core/algorithm/boundingbox.h>
+#include <string>
 
 namespace inviwo {
 
@@ -61,6 +62,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     , entryPort_("entry")
     , exitPort_("exit")
     , backgroundPort_("bg")
+    , colorsPort_("colorVector")
     , outport_("outport")
     , channel_("channel", "Render Channel", {{"Channel 1", "Channel 1", 0}}, 0)
     , raycasting_("raycaster", "Raycasting")
@@ -79,6 +81,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
     addPort(exitPort_, "ImagePortGroup1");
     addPort(outport_, "ImagePortGroup1");
     addPort(backgroundPort_, "ImagePortGroup1");
+    addPort(colorsPort_, "ColorSetPort");
 
     backgroundPort_.setOptional(true);
 
@@ -114,6 +117,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
             }
         }
     });
+
 
     addProperty(channel_);
     addProperty(raycasting_);
@@ -173,9 +177,18 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
         shader_.setUniform("useNormals", false);
     }
 
-    // ADDING SELECTED COLOR
-    shader_.setUniform("pointValue", viewColor_);
+    // ADDING Colors 
+    // ShaderObject *shaderObj_ = shader_.getFragmentShaderObject();
+    auto colorLen = colorsPort_.getData()->size();
+    // shaderObj_->addShaderDefine("MAX_COLORS", std::to_string(colorLen));
+    shader_.setUniform("colorLen", int(colorLen));
+    for(long unsigned int i=0;i < colorLen;i++)
+    {
+        std::string s = "colorArray[" + std::to_string(i) + "]";
+        shader_.setUniform(s, colorsPort_.getData()->at(i));
+    }
     // END
+
     utilgl::setUniforms(shader_, outport_, camera_, lighting_, raycasting_, positionIndicator_,
                         channel_);
 
@@ -184,6 +197,7 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
     shader_.deactivate();
     utilgl::deactivateCurrentTarget();
 
+    // shader_.build();
 }
 
 void CustomVolumeRayCaster::toggleShading(Event*) {
