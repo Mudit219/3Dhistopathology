@@ -36,10 +36,12 @@
 #include <inviwo/core/common/inviwo.h>
 #include <inviwo/core/processors/processor.h>
 #include <inviwo/core/properties/ordinalproperty.h>
-#include <inviwo/core/ports/imageport.h>
-#include <inviwo/core/ports/vector4port.h>
+#include <inviwo/core/properties/listproperty.h>
 #include <inviwo/core/properties/stringproperty.h>
 #include <inviwo/core/properties/eventproperty.h>
+#include <inviwo/core/properties/propertyownerobserver.h>
+#include <inviwo/core/ports/imageport.h>
+#include <inviwo/core/ports/vector4port.h>
 
 namespace inviwo {
 
@@ -64,7 +66,9 @@ namespace inviwo {
  *   * __Coordinates__ The mouse coordinates in the image.
  *
  */
-class IVW_MODULE_BASE_API CustomPixelValue : public Processor {
+class IVW_MODULE_BASE_API CustomPixelValue : public Processor,
+                                             public PropertyObserver,
+                                             public PropertyOwnerObserver {
 public:
     CustomPixelValue();
     virtual ~CustomPixelValue() = default;
@@ -80,22 +84,31 @@ public:
 
 private:
     
+    virtual void onDidAddProperty(Property* property, size_t index) override;
+    virtual void onDidRemoveProperty(Property* property, size_t index) override;
+
+    void updateOptions();
+
     ImageInport inport_;
     ImageOutport outport_;
     Vec4Outport vecOutport_;
 
     IntSize2Property coordinates_;
-    std::vector<DoubleVec4Property> pixelValues_;
+    // std::vector<DoubleVec4Property> pixelValues_;
     std::vector<FloatVec4Property> pixelValuesNormalized_;
-    DoubleVec4Property pickingValue_;
-    DoubleProperty depthValue_;
+    // DoubleVec4Property pickingValue_;
+    // DoubleProperty depthValue_;
 
-    std::vector<StringProperty> pixelStrValues_;
-    StringProperty pickingStrValue_;
-    StringProperty depthStrValue_;
+    // std::vector<StringProperty> pixelStrValues_;
+    // StringProperty pickingStrValue_;
+    // StringProperty depthStrValue_;
 
     EventProperty mouseClick_;
     std::vector<inviwo::vec4> areaPixelsData_;
+
+    ListProperty selectedPixelsData_;
+    int MaxColorVal_;
+    IntSizeTProperty threshold_;
 };
 
 }  // namespace inviwo

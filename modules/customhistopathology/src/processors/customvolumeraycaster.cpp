@@ -129,14 +129,14 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
 }
 
 void CustomVolumeRayCaster::initializeResources() {
-    // utilgl::addDefines(shader_, raycasting_, isotfComposite_Cell_, camera_, lighting_, positionIndicator_);
     utilgl::addDefines(shader_, raycasting_, camera_, lighting_, positionIndicator_);
     utilgl::addShaderDefinesBGPort(shader_, backgroundPort_);
     shader_.build();
 }
 
 void CustomVolumeRayCaster::process() {
-    if (volumePort_.isChanged()) {
+    std::cout << "Process" << std::endl;
+    if (volumePort_.isChanged() || colorsPort_.isChanged()) {
         dispatchOne(
             [volume = volumePort_.getData()]() {
                 volume->getRep<kind::GL>();
@@ -149,6 +149,10 @@ void CustomVolumeRayCaster::process() {
             });
     } else {
         raycast(*volumePort_.getData());
+    }
+    if(colorsPort_.isChanged())
+    {
+        std::cout << "Change" << std::endl;
     }
 }
 
@@ -178,9 +182,7 @@ void CustomVolumeRayCaster::raycast(const Volume& volume)
     }
 
     // ADDING Colors 
-    // ShaderObject *shaderObj_ = shader_.getFragmentShaderObject();
     auto colorLen = colorsPort_.getData()->size();
-    // shaderObj_->addShaderDefine("MAX_COLORS", std::to_string(colorLen));
     shader_.setUniform("colorLen", int(colorLen));
     for(long unsigned int i=0;i < colorLen;i++)
     {

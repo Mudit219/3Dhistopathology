@@ -6,6 +6,7 @@ class PythonExample(ivw.Processor):
     def __init__(self, id, name):
         ivw.Processor.__init__(self, id, name)
         self.inport = ivw.data.VolumeInport("inport")
+        self.newInport = ivw.data.ImageInport("newInport")
         self.addInport(self.inport)
         self.outport = ivw.data.VolumeOutport("outport")
         self.addOutport(self.outport)
