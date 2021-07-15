@@ -45,6 +45,7 @@
 #include <inviwo/core/ports/imageport.h>
 #include <inviwo/core/ports/volumeport.h>
 #include <inviwo/core/ports/vector4port.h>
+#include <inviwo/core/ports/stringport.h>
 #include <modules/opengl/shader/shader.h>
 
 #include <inviwo/core/properties/transferfunctionproperty.h>
@@ -98,12 +99,14 @@ protected:
     void toggleShading(Event*);
 
     Shader shader_;
+    StringInport stringport_;
     VolumeInport volumePort_;
     ImageInport entryPort_;
     ImageInport exitPort_;
     ImageInport backgroundPort_;
     Vec4Inport colorsPort_;
     ImageOutport outport_;
+
 
     OptionPropertyInt channel_;
     CustomRaycastingProperty raycasting_;

@@ -58,6 +58,7 @@ const ProcessorInfo CustomVolumeRayCaster::getProcessorInfo() const { return pro
 CustomVolumeRayCaster::CustomVolumeRayCaster()
     : PoolProcessor()
     , shader_("customraycasting.frag", Shader::Build::No)
+    , stringport_("string")
     , volumePort_("volume")
     , entryPort_("entry")
     , exitPort_("exit")
@@ -76,6 +77,7 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
 {
     shader_.onReload([this]() { invalidate(InvalidationLevel::InvalidResources); });         
 
+    addPort(stringport_);
     addPort(volumePort_, "VolumePortGroup");
     addPort(entryPort_, "ImagePortGroup1");
     addPort(exitPort_, "ImagePortGroup1");
@@ -135,6 +137,10 @@ void CustomVolumeRayCaster::initializeResources() {
 }
 
 void CustomVolumeRayCaster::process() {
+    for(auto p: *stringport_.getData())
+    {
+        std::cout << p << std::endl;
+    }
     std::cout << "Process" << std::endl;
     if (volumePort_.isChanged() || colorsPort_.isChanged()) {
         dispatchOne(
