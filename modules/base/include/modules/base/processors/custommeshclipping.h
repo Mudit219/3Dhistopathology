@@ -36,7 +36,6 @@
 #include <inviwo/core/processors/processor.h>
 #include <inviwo/core/ports/meshport.h>
 #include <inviwo/core/ports/volumeport.h>
-#include <inviwo/core/ports/stringport.h>
 #include <inviwo/core/datastructures/geometry/simplemesh.h>
 #include <inviwo/core/datastructures/geometry/plane.h>
 #include <inviwo/core/properties/boolproperty.h>
@@ -91,7 +90,6 @@ private:
     MeshInport inport_;
     VolumeInport volport_;
     MeshOutport outport_;
-    StringOutport stringport_;
     DataOutport<Plane> clippingPlane_;
 
     BoolProperty clippingEnabled_;

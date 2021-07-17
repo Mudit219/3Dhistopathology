@@ -30,9 +30,8 @@
 #pragma once
 
 #include <inviwo/customhistopathology/customhistopathologymoduledefine.h>
-// #include <inviwo/core/processors/processor.h>
-// #include <inviwo/core/properties/ordinalproperty.h>
 
+#include <inviwo/core/datastructures/transferfunction.h>
 #include <inviwo/core/processors/poolprocessor.h>
 #include <inviwo/core/properties/optionproperty.h>
 #include <inviwo/core/properties/isotfproperty.h>
@@ -41,17 +40,15 @@
 #include <inviwo/core/properties/cameraproperty.h>
 #include <inviwo/core/properties/compositeproperty.h>
 #include <inviwo/core/properties/eventproperty.h>
+#include <inviwo/core/properties/ordinalproperty.h>
 #include <inviwo/core/properties/volumeindicatorproperty.h>
+#include <inviwo/core/properties/transferfunctionproperty.h>
 #include <inviwo/core/ports/imageport.h>
 #include <inviwo/core/ports/volumeport.h>
 #include <inviwo/core/ports/vector4port.h>
-#include <inviwo/core/ports/stringport.h>
 #include <modules/opengl/shader/shader.h>
 
-#include <inviwo/core/properties/transferfunctionproperty.h>
-#include <inviwo/core/datastructures/transferfunction.h>
 
-#include <inviwo/core/properties/ordinalproperty.h>
 
 namespace inviwo {
 
@@ -99,7 +96,6 @@ protected:
     void toggleShading(Event*);
 
     Shader shader_;
-    StringInport stringport_;
     VolumeInport volumePort_;
     ImageInport entryPort_;
     ImageInport exitPort_;
@@ -110,14 +106,13 @@ protected:
 
     OptionPropertyInt channel_;
     CustomRaycastingProperty raycasting_;
-    // IsoTFProperty isotfComposite_Cell_;
     
     CameraProperty camera_;
     SimpleLightingProperty lighting_;
     VolumeIndicatorProperty positionIndicator_;
     EventProperty toggleShading_;
 
-    FloatVec4Property viewColor_; //Make into a set of points later on
+    FloatVec4Property viewColor_;
 
 };
 

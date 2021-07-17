@@ -26,6 +26,7 @@ set(HEADER_FILES
     include/modules/basegl/processors/cuberenderer.h
     include/modules/basegl/processors/drawlines.h
     include/modules/basegl/processors/drawpoints.h
+    include/modules/basegl/processors/drawrectangles.h
     include/modules/basegl/processors/embeddedvolumeslice.h
     include/modules/basegl/processors/entryexitpointsprocessor.h
     include/modules/basegl/processors/firstivwprocessor.h
@@ -114,6 +115,7 @@ set(SOURCE_FILES
     src/processors/cuberenderer.cpp
     src/processors/drawlines.cpp
     src/processors/drawpoints.cpp
+    src/processors/drawrectangles.cpp
     src/processors/embeddedvolumeslice.cpp
     src/processors/entryexitpointsprocessor.cpp
     src/processors/firstivwprocessor.cpp

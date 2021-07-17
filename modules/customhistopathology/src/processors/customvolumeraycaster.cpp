@@ -49,8 +49,8 @@ namespace inviwo {
 const ProcessorInfo CustomVolumeRayCaster::processorInfo_{
     "org.inviwo.CustomVolumeRayCaster",     // Class identifier
     "Custom Volume Ray Caster",             // Display name
-    "Undefined",                            // Category
-    CodeState::Experimental,                // Code state
+    "GL",                            // Category
+    CodeState::Stable,                // Code state
     "Custom, DVR, Raycasting",              // Tags
 };
 const ProcessorInfo CustomVolumeRayCaster::getProcessorInfo() const { return processorInfo_; }
@@ -58,7 +58,6 @@ const ProcessorInfo CustomVolumeRayCaster::getProcessorInfo() const { return pro
 CustomVolumeRayCaster::CustomVolumeRayCaster()
     : PoolProcessor()
     , shader_("customraycasting.frag", Shader::Build::No)
-    , stringport_("string")
     , volumePort_("volume")
     , entryPort_("entry")
     , exitPort_("exit")
@@ -77,7 +76,6 @@ CustomVolumeRayCaster::CustomVolumeRayCaster()
 {
     shader_.onReload([this]() { invalidate(InvalidationLevel::InvalidResources); });         
 
-    addPort(stringport_);
     addPort(volumePort_, "VolumePortGroup");
     addPort(entryPort_, "ImagePortGroup1");
     addPort(exitPort_, "ImagePortGroup1");
@@ -137,12 +135,7 @@ void CustomVolumeRayCaster::initializeResources() {
 }
 
 void CustomVolumeRayCaster::process() {
-    for(auto p: *stringport_.getData())
-    {
-        std::cout << p << std::endl;
-    }
-    std::cout << "Process" << std::endl;
-    if (volumePort_.isChanged() || colorsPort_.isChanged()) {
+    if (volumePort_.isChanged()) {
         dispatchOne(
             [volume = volumePort_.getData()]() {
                 volume->getRep<kind::GL>();
@@ -155,10 +148,6 @@ void CustomVolumeRayCaster::process() {
             });
     } else {
         raycast(*volumePort_.getData());
-    }
-    if(colorsPort_.isChanged())
-    {
-        std::cout << "Change" << std::endl;
     }
 }
 

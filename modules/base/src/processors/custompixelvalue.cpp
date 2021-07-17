@@ -45,7 +45,7 @@ const ProcessorInfo CustomPixelValue::processorInfo_{
     "org.inviwo.CustomPixelValue",      // Class identifier
     "Custom Pixel Value",                // Display name
     "Information",              // Category
-    CodeState::Experimental,  // Code state
+    CodeState::Stable,  // Code state
     Tags::CPU,               // Tags
 };
 const ProcessorInfo CustomPixelValue::getProcessorInfo() const { return processorInfo_; }
@@ -59,41 +59,10 @@ CustomPixelValue::CustomPixelValue()
                    size2_t(std::numeric_limits<size_t>::lowest()),
                    size2_t(std::numeric_limits<size_t>::max()), size2_t(1),
                    InvalidationLevel::Valid, PropertySemantics::Text)
-    // , pixelValues_(
-    //       {{"pixelValue1", "Pixel Value", dvec4(0), dvec4(std::numeric_limits<double>::lowest()),
-    //         dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue2", "Pixel Value (Layer 2)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue3", "Pixel Value (Layer 3)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue4", "Pixel Value (Layer 4)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue5", "Pixel Value (Layer 5)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue6", "Pixel Value (Layer 6)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue7", "Pixel Value (Layer 7)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text},
-    //        {"pixelValue8", "Pixel Value (Layer 8)", dvec4(0),
-    //         dvec4(std::numeric_limits<double>::lowest()), dvec4(std::numeric_limits<double>::max()),
-    //         dvec4(std::numeric_limits<double>::epsilon()), InvalidationLevel::Valid,
-    //         PropertySemantics::Text}
-
-    //       })
+    , imagedims_("Dimesions", "Image Dimensions", size2_t(0),
+                  size2_t(std::numeric_limits<size_t>::lowest()),
+                  size2_t(std::numeric_limits<size_t>::max()), size2_t(1),
+                  InvalidationLevel::Valid, PropertySemantics::Text)
     , pixelValuesNormalized_({
           {"pixelValue1Normalized", "Normalized Pixel Value", vec4(0), vec4(0), vec4(1),
            vec4(std::numeric_limits<float>::epsilon()), InvalidationLevel::Valid,
@@ -121,28 +90,6 @@ CustomPixelValue::CustomPixelValue()
            PropertySemantics::Color},
 
       })
-
-    // , pickingValue_(
-    //       "pickingValue", "Picking Value", dvec4(0), dvec4(std::numeric_limits<double>::lowest()),
-    //       dvec4(std::numeric_limits<double>::max()), dvec4(std::numeric_limits<double>::epsilon()),
-    //       InvalidationLevel::Valid, PropertySemantics::Text)
-    // , depthValue_("depthValue_", "Depth Value", 0.0, std::numeric_limits<double>::lowest(),
-    //               std::numeric_limits<double>::max(), std::numeric_limits<double>::epsilon(),
-    //               InvalidationLevel::Valid, PropertySemantics::Text)
-    // , pixelStrValues_({
-    //       {"pixelStrValue", "Pixel Value (as string)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue2", "Pixel Value (as string, layer 2)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue3", "Pixel Value (as string, layer 3)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue4", "Pixel Value (as string, layer 4)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue5", "Pixel Value (as string, layer 5)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue6", "Pixel Value (as string, layer 6)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue7", "Pixel Value (as string, layer 7)", "", InvalidationLevel::Valid},
-    //       {"pixelStrValue8", "Pixel Value (as string, layer 8)", "", InvalidationLevel::Valid},
-    //   })
-
-    // , pickingStrValue_("pickingStrValue", "Picking Value (as string)", "", InvalidationLevel::Valid)
-    // , depthStrValue_("depthStrValue", "Depth Value (as string)", "", InvalidationLevel::Valid)
-
     , mouseClick_(
           "mouseClick", "Mouse Click", [this](Event* e) { mouseClickEvent(e); },
           MouseButton::Left, MouseState::Press, KeyModifiers(flags::none),
@@ -165,19 +112,12 @@ CustomPixelValue::CustomPixelValue()
     addPort(vecOutport_);
 
     for (int i = 0; i < 8; i++) {
-        // pixelValues_[i].setVisible(i == 0);
-        // pixelStrValues_[i].setVisible(i == 0);
         pixelValuesNormalized_[i].setVisible(i == 0);
-        // addProperty(pixelValues_[i]);
-        // addProperty(pixelStrValues_[i]);
         addProperty(pixelValuesNormalized_[i]);
     }
 
-    // addProperty(pickingValue_);
-    // addProperty(pickingStrValue_);
-    // addProperty(depthValue_);
-    // addProperty(depthStrValue_);
     addProperty(coordinates_);
+    addProperty(imagedims_);
     addProperty(mouseClick_);
     addProperty(selectedPixelsData_);
     addProperty(threshold_);
@@ -186,10 +126,9 @@ CustomPixelValue::CustomPixelValue()
         size_t numCh = 1;
         if (inport_.hasData()) {
             numCh = inport_.getData()->getNumberOfColorLayers();
+            imagedims_.set(inport_.getData()->getDimensions());
         }
         for (size_t i = 0; i < 8; i++) {
-            // pixelValues_[i].setVisible(i < numCh);
-            // pixelStrValues_[i].setVisible(i < numCh);
             pixelValuesNormalized_[i].setVisible(i < numCh);
         }
     });
@@ -204,7 +143,6 @@ CustomPixelValue::CustomPixelValue()
 void CustomPixelValue::process() 
 { 
     outport_.setData(inport_.getData());
-    // std::cout << "process" << std::endl;
     vecOutport_.setData(std::move(areaPixelsData_)); 
 }
 
@@ -354,7 +292,6 @@ void CustomPixelValue::onDidAddProperty(Property* property, size_t) {
 
 void CustomPixelValue::onDidRemoveProperty(Property* property, size_t) 
 { 
-    // std::cout << "yes" << std::endl;
     updateOptions(); 
     property->Property::removeObserver(this);
 }
@@ -369,8 +306,6 @@ void CustomPixelValue::updateOptions()
     }
     areaPixelsData_ = selectedColorVal;
     vecOutport_.setData(std::move(areaPixelsData_)); 
-    // vecOutport_.invalidate(InvalidationLevel::InvalidOutput);
-    // std::cout << "update" << std::endl;
 }
 
 }  // namespace inviwo

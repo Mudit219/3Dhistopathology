@@ -34,6 +34,7 @@
 #include <modules/basegl/processors/cuberenderer.h>
 #include <modules/basegl/processors/drawlines.h>
 #include <modules/basegl/processors/drawpoints.h>
+#include <modules/basegl/processors/drawrectangles.h>
 #include <modules/basegl/processors/embeddedvolumeslice.h>
 #include <modules/basegl/processors/entryexitpointsprocessor.h>
 #include <modules/basegl/processors/firstivwprocessor.h>
@@ -118,6 +119,7 @@ BaseGLModule::BaseGLModule(InviwoApplication* app) : InviwoModule(app, "BaseGL")
     registerProcessor<CubeRenderer>();
     registerProcessor<DrawLines>();
     registerProcessor<DrawPoints>();
+    registerProcessor<DrawRectangles>();
     registerProcessor<EmbeddedVolumeSlice>();
     registerProcessor<EntryExitPoints>();
     registerProcessor<FirstIvwProcessor>();

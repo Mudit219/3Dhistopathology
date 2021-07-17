@@ -94,14 +94,8 @@ private:
     Vec4Outport vecOutport_;
 
     IntSize2Property coordinates_;
-    // std::vector<DoubleVec4Property> pixelValues_;
+    IntSize2Property imagedims_;
     std::vector<FloatVec4Property> pixelValuesNormalized_;
-    // DoubleVec4Property pickingValue_;
-    // DoubleProperty depthValue_;
-
-    // std::vector<StringProperty> pixelStrValues_;
-    // StringProperty pickingStrValue_;
-    // StringProperty depthStrValue_;
 
     EventProperty mouseClick_;
     std::vector<inviwo::vec4> areaPixelsData_;

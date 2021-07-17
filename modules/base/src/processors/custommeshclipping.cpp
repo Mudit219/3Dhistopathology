@@ -36,9 +36,9 @@ namespace inviwo {
 const ProcessorInfo CustomMeshClipping::processorInfo_{
     "org.inviwo.CustomMeshClipping",      // Class identifier
     "Custom Mesh Clipping",                // Display name
-    "Undefined",              // Category
+    "Mesh Creation",              // Category
     CodeState::Experimental,  // Code state
-    Tags::None,               // Tags
+    Tags::CPU,               // Tags
 };
 const ProcessorInfo CustomMeshClipping::getProcessorInfo() const { return processorInfo_; }
 
@@ -47,7 +47,6 @@ CustomMeshClipping::CustomMeshClipping()
     , inport_("inputMesh")
     , volport_("volumeData")
     , outport_("clippedMesh")
-    , stringport_("stringData")
     , clippingPlane_("clippingPlane")
     , clippingEnabled_("clippingEnabled", "Enable clipping", true)
     , movePointAlongNormal_("movePointAlongNormal", "Move Plane Point Along Normal", false,
@@ -73,7 +72,6 @@ CustomMeshClipping::CustomMeshClipping()
     addPort(volport_);
     addPort(outport_);
     addPort(clippingPlane_);
-    addPort(stringport_, "stringPort");
     addProperty(clippingEnabled_);
     addProperty(movePointAlongNormal_);
     addProperty(moveCameraAlongNormal_);
@@ -110,7 +108,6 @@ float mapA(float a,float b,float x)
 }
 
 void CustomMeshClipping::process() {
-    stringport_.setData(std::vector<std::string>({"Hello", "I", "am"}));
     /** Process overview
      *   - Take axis-aligned bounding box (AABB) mesh as input.
      *   - Call clipGeometryAgainstPlane(...) with input and plane_ as arguments
@@ -151,7 +148,7 @@ void CustomMeshClipping::process() {
             clippedPlaneGeom->setModelMatrix(inport_.getData()->getModelMatrix());
             clippedPlaneGeom->setWorldMatrix(inport_.getData()->getWorldMatrix());
             outport_.setData(clippedPlaneGeom);
-            std::cout << plane->getPoint() << std:: endl;
+            // std::cout << plane->getPoint() << std:: endl;
             auto p = plane->getPoint();
             // vec3 normalisedPointVec = vec3(mapA(-MaxLimit[0]/2,MaxLimit[0]/2,p[0]),mapA(-MaxLimit[1]/2,MaxLimit[1]/2,p[1]),mapA(-MaxLimit[2]/2,MaxLimit[2]/2,p[2]));
             const mat4 indexToTexture(
