@@ -791,6 +791,7 @@ target_link_libraries(inviwo-core
         $<$<BOOL:${WIN32}>:inviwo::stackwalker>
         $<$<BOOL:${APPLE}>:${CORESERVICES_LIBRARY}>
         inviwo::tinydir
+        openslide
 )
 
 #Optimize compiliation with PCH etc

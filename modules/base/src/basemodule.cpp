@@ -35,6 +35,7 @@
 #include <modules/base/processors/cubeproxygeometryprocessor.h>
 #include <modules/base/processors/custommeshclipping.h>
 #include <modules/base/processors/custompixelvalue.h>
+#include <modules/base/processors/customimagestackvolumeprocessor.h>
 #include <modules/base/processors/diffuselightsourceprocessor.h>
 #include <modules/base/processors/directionallightsourceprocessor.h>
 #include <modules/base/processors/distancetransformram.h>
@@ -141,6 +142,7 @@ BaseModule::BaseModule(InviwoApplication* app) : InviwoModule(app, "Base") {
     registerProcessor<CubeProxyGeometry>();
     registerProcessor<CustomMeshClipping>();
     registerProcessor<CustomPixelValue>();
+    registerProcessor<CustomImageStackVolumeProcessor>();
     registerProcessor<DiffuseLightSourceProcessor>();
     registerProcessor<DirectionalLightSourceProcessor>();
     registerProcessor<DistanceTransformRAM>();

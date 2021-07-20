@@ -50,6 +50,7 @@ set(HEADER_FILES
     include/modules/base/processors/camerafrustum.h
     include/modules/base/processors/convexhull2dprocessor.h
     include/modules/base/processors/cubeproxygeometryprocessor.h
+    include/modules/base/processors/customimagestackvolumeprocessor.h
     include/modules/base/processors/custommeshclipping.h
     include/modules/base/processors/custompixelvalue.h
     include/modules/base/processors/dataexport.h
@@ -128,6 +129,7 @@ set(HEADER_FILES
     include/modules/base/properties/meshinformationproperty.h
     include/modules/base/properties/sequencetimerproperty.h
     include/modules/base/properties/transformlistproperty.h
+    include/modules/base/properties/toojpeg.h
     include/modules/base/properties/volumeinformationproperty.h
 )
 ivw_group("Header Files" ${HEADER_FILES})
@@ -177,6 +179,7 @@ set(SOURCE_FILES
     src/processors/camerafrustum.cpp
     src/processors/convexhull2dprocessor.cpp
     src/processors/cubeproxygeometryprocessor.cpp
+    src/processors/customimagestackvolumeprocessor.cpp
     src/processors/custommeshclipping.cpp
     src/processors/custompixelvalue.cpp
     src/processors/diffuselightsourceprocessor.cpp
@@ -250,6 +253,7 @@ set(SOURCE_FILES
     src/properties/meshinformationproperty.cpp
     src/properties/sequencetimerproperty.cpp
     src/properties/transformlistproperty.cpp
+    src/properties/toojpeg.cpp
     src/properties/volumeinformationproperty.cpp
 )
 ivw_group("Source Files" ${SOURCE_FILES})
