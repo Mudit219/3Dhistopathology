@@ -52,6 +52,9 @@
 
 #include <openslide/openslide.h>
 #include<fstream>
+
+#define IMG_PATH "/home/sassluck/Desktop/Histopathology/level2.jpg"
+#define OUT_PATH "/home/sassluck/Desktop/Histopathology/output.txt"
 namespace inviwo {
 
 namespace {
@@ -81,23 +84,41 @@ CustomImageStackVolumeProcessor::CustomImageStackVolumeProcessor(InviwoApplicati
     , filePattern_("filePattern", "File Pattern", "####.jpeg", "")
     , reload_("reload", "Reload data")
     , skipUnsupportedFiles_("skipUnsupportedFiles", "Skip Unsupported Files", false)
+    , isRectanglePresent_("isRectanglePresent", "Is Rectangle Present", false)
     , basis_("Basis", "Basis and offset")
     , information_("Information", "Data information")
     , readerFactory_{app->getDataReaderFactory()}
+    , level_("level", "Level", 2, 0, 3) //The maximum level in the test slide is 3. Need to generalise it later.
+    , coordinates_("Coordinates", "Coordinates", size2_t(0),
+                   size2_t(std::numeric_limits<size_t>::lowest()),
+                   size2_t(std::numeric_limits<size_t>::max()), size2_t(1),
+                   InvalidationLevel::Valid, PropertySemantics::Text)
     {
     addPort(inport_);
     addPort(outport_);
     addProperty(filePattern_);
     addProperty(reload_);
     addProperty(skipUnsupportedFiles_);
+    addProperty(isRectanglePresent_);
+    isRectanglePresent_.onChange([this](){process();});
+
     addProperty(basis_);
     addProperty(information_);
-    // myFile.open("/home/sassluck/Desktop/Histopathology/level2.jpg", std::ios_base::out | std::ios_base::binary);
     isSink_.setUpdate([]() { return true; });
     isReady_.setUpdate([this]() { return !filePattern_.getFileList().empty(); });
     filePattern_.onChange([&]() { isReady_.update(); });
 
     addFileNameFilters();
+
+    addProperty(level_);
+    addProperty(coordinates_);
+    level_.onChange([&](){process();});
+    coordinates_.onChange([&](){process();});
+
+    inport_.onChange([&]() {
+        isReady_.update(); 
+        process();
+        });
 }
 std::ofstream myFile;
 void CustomImageStackVolumeProcessor::myOutput(unsigned char byte)
@@ -108,7 +129,7 @@ void CustomImageStackVolumeProcessor::my_slide(std::string PATH){
         std::cout << "Image path is : "<< PATH << std::endl;
 
     openslide_t* op = openslide_open(PATH.c_str());
-    int32_t level = 2;
+    int32_t level = level_.get();
     int64_t dim_lvlk[2];
     int64_t dim_lvl0[2];
     if(op!=0)
@@ -122,26 +143,30 @@ void CustomImageStackVolumeProcessor::my_slide(std::string PATH){
     Rectangle based calculation 
     */
     int64_t start_x,start_y,w,h;
-    // int64_t size_img=w*h*4;
-    // uint32_t *dest = (uint32_t*)malloc(size_img);
     if(!inport_.hasData())
     {
-        std::cout << "No" << std::endl;
-        start_x=0,start_y=0,w=dim_lvlk[0]/2,h=dim_lvlk[1]/2; 
+        start_x=coordinates_.get(0),start_y=coordinates_.get(1),w=1920,h=1080; 
     }
     else
     {
-        std::cout << "Yes" << std::endl;
         start_x = inport_.getData()->at(0).x;
         start_y = inport_.getData()->at(0).y;
 
         w = abs(inport_.getData()->at(0).x - inport_.getData()->at(1).x);
         h = abs(inport_.getData()->at(0).y - inport_.getData()->at(2).y);
 
-        std::cout << start_x << " " << start_y << " " << w << " " << h << std::endl; 
+        w *= (dim_lvl0[0]/dim_lvlk[0]);
+        h *= (dim_lvl0[1]/dim_lvlk[1]);
+
+        if(w > 1920) w=1920;
+        if(h > 1080) w=1080;
     }
     start_x*=(dim_lvl0[0]/dim_lvlk[0]);
     start_y*=(dim_lvl0[1]/dim_lvlk[1]);
+
+
+
+    std::cout << start_x << " " << start_y << std::endl;
 
     int64_t size_img=w*h*4;
     uint32_t *dest = (uint32_t*)malloc(size_img);
@@ -150,20 +175,14 @@ void CustomImageStackVolumeProcessor::my_slide(std::string PATH){
     if(op!=0){
         openslide_read_region(op,dest,start_x,start_y,level,w,h);
         openslide_close(op);
+
+        std::cout << "in OP" << std::endl;
     }
-    // std::cout << openslide_get_level_count(op);
-    // std::cout << w << "," <<  h;
-    // std::cout << *dest;
-    // std::cout << sizeof(dest)/sizeof(dest[0]);
-    std::cout<< "(" << dim_lvlk[0] << "," << dim_lvlk[1] << ")" << std::endl;
-    // std::cout << "size : " <<size_img << std::endl; 
-    // convert_to_binary(65523);
-    // color
-    // for(int i=0;i<size_img;i++)
-    //     std::cout << dest[i] <<  " ";
+
+    // std::cout<< "(" << dim_lvlk[0] << "," << dim_lvlk[1] << ")" << std::endl;
+
     int bytesperpixel=3;
     auto pixels = new unsigned char[w*h*bytesperpixel];
-    // std::cout << "Total number of pixels :" << w*h*bytesperpixel << std::endl;
 
     for (int y = 0; y < h; y++) {
     for (int x = 0; x < w; x++) {
@@ -201,9 +220,9 @@ void CustomImageStackVolumeProcessor::process() {
     // outport_.setData(myImage);
     // my_slide();
     util::OnScopeExit guard{[&]() { outport_.setData(nullptr); }};
-    myFile.open("/home/sassluck/Desktop/Histopathology/level2.jpg", std::ios_base::out | std::ios_base::binary);
-    myFile.close();
-    if (filePattern_.isModified() || reload_.isModified() || skipUnsupportedFiles_.isModified()) {
+    // myFile.open("/home/sassluck/Desktop/Histopathology/level2.jpg", std::ios_base::out | std::ios_base::binary);
+    // myFile.close();
+    if (filePattern_.isModified() || reload_.isModified() || skipUnsupportedFiles_.isModified() || isRectanglePresent_.isModified()) {
         myFile.open("/home/sassluck/Desktop/Histopathology/level2.jpg", std::ios_base::out | std::ios_base::binary);
         auto image_paths = filePattern_.getFileList();
         std::cout << "Current image path is : " << image_paths[0] << std::endl;
@@ -214,6 +233,7 @@ void CustomImageStackVolumeProcessor::process() {
             information_.updateForNewVolume(*volume_, deserialized_);
         }
         deserialized_ = false;
+        myFile.close();
     }
 
     if (volume_) {

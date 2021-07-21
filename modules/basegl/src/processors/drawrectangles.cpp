@@ -54,6 +54,7 @@ DrawRectangles::DrawRectangles()
     , lineSize_("lineSize", "Line Size", 1.f, 1.f, 10.f)
     , lineColor_("lineColor", "Line Color", vec4(1.f))
     , clearButton_("clearButton", "Clear Lines")
+    , isRectanglePresent_("isRectanglePresent", "Is Rectangle Present", false)
     , mouseDraw_(
           "mouseDraw", "Draw Line", [this](Event* e) { eventDraw(e); }, MouseButton::Left,
           MouseState::Press, KeyModifiers(flags::none))
@@ -75,6 +76,7 @@ DrawRectangles::DrawRectangles()
     addProperty(lineColor_);
     clearButton_.onChange([this]() { clearLines(); });
     addProperty(clearButton_);
+    addProperty(isRectanglePresent_);
 
     addProperty(mouseDraw_);
     addProperty(keyEnableDraw_);
@@ -123,6 +125,11 @@ void DrawRectangles::process() {
         std::vector<inviwo::vec2> recVals = {vec2(minX_elm[0], minY_elm[1]), vec2(maxX_elm[0], minY_elm[1]), 
                                              vec2(minX_elm[0], maxY_elm[1]), vec2(maxX_elm[0], maxY_elm[1])};
         coordinateport_.setData(std::move(recVals));
+        isRectanglePresent_ = true;
+    }
+    else
+    {
+        isRectanglePresent_ = false;
     }
     
 }
@@ -156,6 +163,7 @@ void DrawRectangles::eventDraw(Event* event) {
         clearLines();
         addPoint(vec2(line.x,line.y), origLine);
         pointsCount_ = 1;
+        isRectanglePresent_ = false;
     }
     else
     {

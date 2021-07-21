@@ -89,7 +89,7 @@ private:
     FloatProperty lineSize_;
     FloatVec4Property lineColor_;
     ButtonProperty clearButton_;
-
+    BoolProperty isRectanglePresent_;
     EventProperty mouseDraw_;
     EventProperty keyEnableDraw_;
 

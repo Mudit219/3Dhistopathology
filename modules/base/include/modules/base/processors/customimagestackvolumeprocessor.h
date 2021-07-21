@@ -106,7 +106,7 @@ private:
     FilePatternProperty filePattern_;
     ButtonProperty reload_;
     BoolProperty skipUnsupportedFiles_;
-
+    BoolProperty isRectanglePresent_;
     BasisProperty basis_;
     VolumeInformationProperty information_;
 
@@ -114,6 +114,10 @@ private:
     bool deserialized_ = false;
 
     DataReaderFactory* readerFactory_;
+
+    IntSizeTProperty level_;
+    IntSize2Property coordinates_;
+    
 };
 
 }  // namespace inviwo
