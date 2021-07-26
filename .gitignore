@@ -7,3 +7,8 @@ pyconfig.ini
 .clangd
 compile_commands.json
 CMakeUserPresets.json
+new-test.inv
+new2.inv
+custom-tf-test1 (1).inv
+build/
+.gitignore
