@@ -153,9 +153,12 @@ void CustomImageStackVolumeProcessor::SlideExtractor(std::string PATH){
     /*
     Rectangle based calculation 
     */
-    coordinateX_.setMaxValue(dim_lvlk[0]);
-    coordinateY_.setMaxValue(dim_lvlk[1]);
-    int64_t start_x,start_y,w,h;
+    // coordinateX_.setMaxValue(dim_lvlk[0]);
+    // coordinateY_.setMaxValue(dim_lvlk[1]);
+    coordinateX_.set(coordinateX_.get(),0,dim_lvlk[0],100);
+    coordinateY_.set(coordinateY_.get(),0,dim_lvlk[1],100);
+    _Float64x start_x,start_y;
+    int64_t w,h;
     if(!inport_.hasData())
     {
         start_x=coordinateX_.get(),start_y=coordinateY_.get(),w=1920,h=1080; 
@@ -174,17 +177,17 @@ void CustomImageStackVolumeProcessor::SlideExtractor(std::string PATH){
         if(h > 1080) w=1080;
     }
     if(level!=zoom_in){
-        std::cout << "Zoomed in to level: " << level << std::endl;
+        std::cout << "Zoomed to level: " << level << std::endl;
         std::cout << "Previous coordinates: " << start_x << " " << start_y << std::endl;
         int64_t dim_lvl_prev[2];
         openslide_get_level_dimensions(op,zoom_in,&dim_lvl_prev[0],&dim_lvl_prev[1]);
-        start_x*=(dim_lvlk[0]/dim_lvl_prev[0]);
-        start_y*=(dim_lvlk[1]/dim_lvl_prev[1]);
+        start_x*=(dim_lvlk[0]/(float)dim_lvl_prev[0]);
+        start_y*=(dim_lvlk[1]/(float)dim_lvl_prev[1]);
         std::cout << "New coordinates: " << start_x << " " << start_y << std::endl;
         zoom_in = level;
-        // zoom_in.set(1);
-
-        std::cout << "Zoom value: " << zoom_in << std::endl;
+        coordinateX_.set(start_x);
+        coordinateY_.set(start_y);
+        // std::cout << "Zoom value: " << zoom_in << std::endl;
     }
     if(start_x + w >= dim_lvlk[0]){
         start_x = dim_lvlk[0]-w;
@@ -192,17 +195,16 @@ void CustomImageStackVolumeProcessor::SlideExtractor(std::string PATH){
     if(start_y + h >= dim_lvlk[1]){
         start_y = dim_lvlk[1]-h;
     }
-    start_x*=(dim_lvl0[0]/dim_lvlk[0]);
-    start_y*=(dim_lvl0[1]/dim_lvlk[1]);
+    start_x*=(dim_lvl0[0]/(float)dim_lvlk[0]);
+    start_y*=(dim_lvl0[1]/(float)dim_lvlk[1]);
 
     std::cout << "Coordinates and dimensions in level 0: " << start_x << " " << start_y << " " << w << " " << h << std::endl;
 
     int64_t size_img=w*h*4;
     uint32_t *dest = (uint32_t*)malloc(size_img);
-    
 
     if(op!=0){
-        openslide_read_region(op,dest,start_x,start_y,level,w,h);
+        openslide_read_region(op,dest,floor(start_x),floor(start_y),level,w,h);
         openslide_close(op);
         std::cout << "in OP" << std::endl;
     }
