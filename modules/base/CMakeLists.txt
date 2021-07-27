@@ -50,7 +50,8 @@ set(HEADER_FILES
     include/modules/base/processors/camerafrustum.h
     include/modules/base/processors/convexhull2dprocessor.h
     include/modules/base/processors/cubeproxygeometryprocessor.h
-    include/modules/base/processors/customimagestackvolumeprocessor.h
+    include/modules/base/processors/customimagestackvolumeprocessor-multi.h
+    include/modules/base/processors/customimagestackvolumeprocessor-single.h
     include/modules/base/processors/custommeshclipping.h
     include/modules/base/processors/custompixelvalue.h
     include/modules/base/processors/dataexport.h
@@ -179,7 +180,8 @@ set(SOURCE_FILES
     src/processors/camerafrustum.cpp
     src/processors/convexhull2dprocessor.cpp
     src/processors/cubeproxygeometryprocessor.cpp
-    src/processors/customimagestackvolumeprocessor.cpp
+    src/processors/customimagestackvolumeprocessor-multi.cpp
+    src/processors/customimagestackvolumeprocessor-single.cpp
     src/processors/custommeshclipping.cpp
     src/processors/custompixelvalue.cpp
     src/processors/diffuselightsourceprocessor.cpp
