@@ -58,6 +58,8 @@ class DataReaderFactory;
 
 /** \docpage{org.inviwo.ImageStackVolumeSource, Image-Stack Volume Source}
  * Converts a stack of 2D images to a 3D volume
+ * This processor has been built as a support for the goal of Rectangle Region selection and rendering 
+ * Refer to the supporting documentation for more information : https://agam-kashyap.notion.site/3D-Histopathology-using-Inviwo-and-OpenSlide-253b21f7f66a47e786ab83b2630f23d8
  * ![](org.inviwo.ImageStackVolumeSource.png?classIdentifier=org.inviwo.ImageStackVolumeSource)
  *
  * The format of the volume will be equivalent to the first input image. The volume resolution
@@ -81,20 +83,19 @@ class DataReaderFactory;
  *   * __Data Information__       Metadata of the generated volume data set.
  *
  */
-class IVW_MODULE_BASE_API CustomImageStackVolumeProcessor : public Processor {
+class IVW_MODULE_BASE_API CustomImageStackVolumeProcessorMulti : public Processor {
 public:
-    CustomImageStackVolumeProcessor(InviwoApplication* app);
+    CustomImageStackVolumeProcessorMulti(InviwoApplication* app);
     void addFileNameFilters();
-    virtual ~CustomImageStackVolumeProcessor() = default;
+    virtual ~CustomImageStackVolumeProcessorMulti() = default;
 
     virtual void process() override;
 
     virtual const ProcessorInfo getProcessorInfo() const override;
     static const ProcessorInfo processorInfo_;
-    void SlideExtractor(std::string);
-    static void ImgOutput(unsigned char);
-    std::string IMG_PATH = "../level2.jpg";
-    std::string IMAGES_LOC = "../output.txt";
+    void slide_processing(std::string);
+    static void k_img_write_out(unsigned char);
+    static void low_img_write_out(unsigned char);
 
 protected:
     std::shared_ptr<Volume> load();
@@ -118,10 +119,7 @@ private:
     DataReaderFactory* readerFactory_;
 
     IntSizeTProperty level_;
-    // IntSize2Property coordinates_;
-    int zoom_in;
-    IntSizeTProperty coordinateX_;
-    IntSizeTProperty coordinateY_;
+    IntSize2Property coordinates_;
     
 };
 

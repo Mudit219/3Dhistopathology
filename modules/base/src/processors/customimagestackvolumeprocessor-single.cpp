@@ -27,7 +27,7 @@
  *
  *********************************************************************************/
 
-#include <modules/base/processors/customimagestackvolumeprocessor.h>
+#include <modules/base/processors/customimagestackvolumeprocessor-single.h>
 
 #include <inviwo/core/common/inviwoapplication.h>
 #include <inviwo/core/datastructures/image/layer.h>
@@ -68,16 +68,16 @@ struct FloatOrIntMax32
 
 
 // The Class Identifier has to be globally unique. Use a reverse DNS naming scheme
-const ProcessorInfo CustomImageStackVolumeProcessor::processorInfo_{
-    "org.inviwo.CustomImageStackVolumeProcessor",      // Class identifier
-    "CustomImageStackVolumeProcessor",                // Display name
+const ProcessorInfo CustomImageStackVolumeProcessorSingle::processorInfo_{
+    "org.inviwo.CustomImageStackVolumeProcessorSingle",      // Class identifier
+    "CustomImageStackVolumeProcessorSingle",                // Display name
     "Undefined",              // Category
     CodeState::Experimental,  // Code state
     Tags::None,               // Tags
 };
-const ProcessorInfo CustomImageStackVolumeProcessor::getProcessorInfo() const { return processorInfo_; }
+const ProcessorInfo CustomImageStackVolumeProcessorSingle::getProcessorInfo() const { return processorInfo_; }
 
-CustomImageStackVolumeProcessor::CustomImageStackVolumeProcessor(InviwoApplication* app)
+CustomImageStackVolumeProcessorSingle::CustomImageStackVolumeProcessorSingle(InviwoApplication* app)
     : Processor()
     , inport_("RegionCoordinates")
     , outport_("volume")
@@ -131,11 +131,11 @@ CustomImageStackVolumeProcessor::CustomImageStackVolumeProcessor(InviwoApplicati
         });
 }
 std::ofstream myFile;
-void CustomImageStackVolumeProcessor::ImgOutput(unsigned char byte)
+void CustomImageStackVolumeProcessorSingle::ImgOutput(unsigned char byte)
 {
   myFile << byte;
 }
-void CustomImageStackVolumeProcessor::SlideExtractor(std::string PATH){
+void CustomImageStackVolumeProcessorSingle::SlideExtractor(std::string PATH){
     // std::cout << "Image path is : "<< PATH << std::endl;
     openslide_t* op = openslide_open(PATH.c_str());
     int32_t level = level_.get();
@@ -230,28 +230,28 @@ void CustomImageStackVolumeProcessor::SlideExtractor(std::string PATH){
     // free(dest);
     // delete []pixels;
     TooJpeg::writeJpeg(ImgOutput, pixels, w, h);
-    std::ofstream out(CustomImageStackVolumeProcessor::IMAGES_LOC);
-    std::string img_name = CustomImageStackVolumeProcessor::IMG_PATH + "\n";
+    std::ofstream out(CustomImageStackVolumeProcessorSingle::IMAGES_LOC);
+    std::string img_name = CustomImageStackVolumeProcessorSingle::IMG_PATH + "\n";
     for(int i=0;i<50;i++)
         out << img_name;
     out.close();
     // std::cout << "Openslide is working" << std::endl;
 }
 
-void CustomImageStackVolumeProcessor::addFileNameFilters() {
+void CustomImageStackVolumeProcessorSingle::addFileNameFilters() {
     filePattern_.clearNameFilters();
     filePattern_.addNameFilter(FileExtension::all());
     filePattern_.addNameFilters(readerFactory_->getExtensionsForType<Layer>());
 }
 
-void CustomImageStackVolumeProcessor::process() {
+void CustomImageStackVolumeProcessorSingle::process() {
     // outport_.setData(myImage);
     // my_slide();
     util::OnScopeExit guard{[&]() { outport_.setData(nullptr); }};
-    myFile.open(CustomImageStackVolumeProcessor::IMG_PATH, std::ios_base::out | std::ios_base::binary);
+    myFile.open(CustomImageStackVolumeProcessorSingle::IMG_PATH, std::ios_base::out | std::ios_base::binary);
     myFile.close();
     if (filePattern_.isModified() || reload_.isModified() || skipUnsupportedFiles_.isModified() || isRectanglePresent_.isModified() || level_.isModified() || coordinateX_.isModified() || coordinateY_.isModified()) {
-        myFile.open(CustomImageStackVolumeProcessor::IMG_PATH, std::ios_base::out | std::ios_base::binary);
+        myFile.open(CustomImageStackVolumeProcessorSingle::IMG_PATH, std::ios_base::out | std::ios_base::binary);
         auto image_paths = filePattern_.getFileList();
         std::cout << "Current image path is : " << image_paths[0] << std::endl;
         SlideExtractor(image_paths[0]);
@@ -272,12 +272,12 @@ void CustomImageStackVolumeProcessor::process() {
     guard.release();
 }
 
-bool CustomImageStackVolumeProcessor::isValidImageFile(std::string fileName) {
+bool CustomImageStackVolumeProcessorSingle::isValidImageFile(std::string fileName) {
     return readerFactory_->hasReaderForTypeAndExtension<Layer>(fileName);
 }
 
-std::shared_ptr<Volume> CustomImageStackVolumeProcessor::load() {
-    std::ifstream file1(CustomImageStackVolumeProcessor::IMAGES_LOC);
+std::shared_ptr<Volume> CustomImageStackVolumeProcessorSingle::load() {
+    std::ifstream file1(CustomImageStackVolumeProcessorSingle::IMAGES_LOC);
     std::string img;
     std::vector<std::string> img_names;
     while(getline(file1,img)){
@@ -416,7 +416,7 @@ std::shared_ptr<Volume> CustomImageStackVolumeProcessor::load() {
         });
 }
 
-void CustomImageStackVolumeProcessor::deserialize(Deserializer& d) {
+void CustomImageStackVolumeProcessorSingle::deserialize(Deserializer& d) {
     Processor::deserialize(d);
     addFileNameFilters();
     deserialized_ = true;
