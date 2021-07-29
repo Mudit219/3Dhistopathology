@@ -46,3 +46,6 @@
 [submodule "ext/span/span"]
 	path = ext/span/span
 	url = https://github.com/inviwo/span.git
+[submodule "project-workspace"]
+	path = project-workspace
+	url = https://github.com/agam-kashyap/3Dhistopathology-Workspace.git
