@@ -94,8 +94,9 @@ CustomImageStackVolumeProcessorSingle::CustomImageStackVolumeProcessorSingle(Inv
     //                size2_t(std::numeric_limits<size_t>::max()), size2_t(1),
     //                InvalidationLevel::Valid, PropertySemantics::Text)
     , zoom_in(2)
-    , coordinateX_("PointerX","PointerX",0,0,10000)
-    , coordinateY_("PointerY","PointerY",0,0,10000)
+    , coordinateX_("PointerX","PointerX",0,0,10000,100)
+    , coordinateY_("PointerY","PointerY",0,0,10000,100)
+    , modified(0)
     // level 2 1000,1000
     // level 1 1000,1000
     {
@@ -111,7 +112,7 @@ CustomImageStackVolumeProcessorSingle::CustomImageStackVolumeProcessorSingle(Inv
     addProperty(information_);
     isSink_.setUpdate([]() { return true; });
     isReady_.setUpdate([this]() { return !filePattern_.getFileList().empty(); });
-    filePattern_.onChange([&]() { isReady_.update(); });
+    filePattern_.onChange([&]() {isReady_.update();});
 
     addFileNameFilters();
 
@@ -130,6 +131,7 @@ CustomImageStackVolumeProcessorSingle::CustomImageStackVolumeProcessorSingle(Inv
         process();
         });
 }
+
 std::ofstream myFile;
 void CustomImageStackVolumeProcessorSingle::ImgOutput(unsigned char byte)
 {
@@ -141,22 +143,24 @@ void CustomImageStackVolumeProcessorSingle::SlideExtractor(std::string PATH){
     int32_t level = level_.get();
     int64_t dim_lvlk[2];
     int64_t dim_lvl0[2];
-    // level_.setMaxValue(openslide_get_level_count(op)-1);
+    level_.setMaxValue(openslide_get_level_count(op)-1);
 
     if(op!=0)
     {
         openslide_get_level_dimensions(op,0,&dim_lvl0[0],&dim_lvl0[1]);
         openslide_get_level_dimensions(op,level,&dim_lvlk[0],&dim_lvlk[1]);
     }
-    else
+    else{
         std::cout << "Please enter a valid image path" << std::endl;
+        return;
+    }
     /*
     Rectangle based calculation 
     */
-    // coordinateX_.setMaxValue(dim_lvlk[0]);
-    // coordinateY_.setMaxValue(dim_lvlk[1]);
-    coordinateX_.set(coordinateX_.get(),0,dim_lvlk[0],100);
-    coordinateY_.set(coordinateY_.get(),0,dim_lvlk[1],100);
+    coordinateX_.setMaxValue(dim_lvlk[0]);
+    coordinateY_.setMaxValue(dim_lvlk[1]);
+    // coordinateX_.set(coordinateX_.get(),0,dim_lvlk[0],100);
+    // coordinateY_.set(coordinateY_.get(),0,dim_lvlk[1],100);
     _Float64x start_x,start_y;
     int64_t w,h;
     if(!inport_.hasData())
@@ -230,7 +234,7 @@ void CustomImageStackVolumeProcessorSingle::SlideExtractor(std::string PATH){
     //   std::cout << ((argb >> 16)& 0xff) << " ";
     }}
     // free(dest);
-    // delete []pixels;
+    delete []pixels;
     TooJpeg::writeJpeg(ImgOutput, pixels, w, h);
     std::ofstream out(CustomImageStackVolumeProcessorSingle::IMAGES_LOC);
     std::string img_name = CustomImageStackVolumeProcessorSingle::IMG_PATH + "\n";
@@ -249,6 +253,8 @@ void CustomImageStackVolumeProcessorSingle::addFileNameFilters() {
 void CustomImageStackVolumeProcessorSingle::process() {
     // outport_.setData(myImage);
     // my_slide();
+    if(modified == 1)
+        return;
     util::OnScopeExit guard{[&]() { outport_.setData(nullptr); }};
     myFile.open(CustomImageStackVolumeProcessorSingle::IMG_PATH, std::ios_base::out | std::ios_base::binary);
     myFile.close();
@@ -256,14 +262,16 @@ void CustomImageStackVolumeProcessorSingle::process() {
         myFile.open(CustomImageStackVolumeProcessorSingle::IMG_PATH, std::ios_base::out | std::ios_base::binary);
         auto image_paths = filePattern_.getFileList();
         std::cout << "Current image path is : " << image_paths[0] << std::endl;
+        modified=1;
         SlideExtractor(image_paths[0]);
+        modified=0;
         volume_ = load();
         if (volume_) {
             basis_.updateForNewEntity(*volume_, deserialized_);
             information_.updateForNewVolume(*volume_, deserialized_);
         }
         deserialized_ = false;
-        myFile.close();
+        // myFile.close();
     }
 
     if (volume_) {

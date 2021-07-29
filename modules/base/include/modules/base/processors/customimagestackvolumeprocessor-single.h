@@ -124,7 +124,7 @@ private:
     int zoom_in;
     IntSizeTProperty coordinateX_;
     IntSizeTProperty coordinateY_;
-    
+    int modified;
 };
 
 }  // namespace inviwo
